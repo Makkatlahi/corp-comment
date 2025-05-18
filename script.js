@@ -1,5 +1,6 @@
 //            ----------Global Selectors----------
 const MAX_CHARS = 150;
+const BASE_API_URL = "https://bytegrad.com/course-assets/js/1/api";
 
 const textareaEl = document.querySelector(".form__textarea");
 const counterEl = document.querySelector(".counter");
@@ -96,7 +97,7 @@ const submitHandler = (event) => {
   renderFeedbackItem(feedbackItem);
 
   // send feedback item to server
-  fetch("https://bytegrad.com/course-assets/js/1/api/feedbacks", {
+  fetch(`${BASE_API_URL}/feedbacks`, {
     method: "POST",
     body: JSON.stringify(feedbackItem),
     headers: {
@@ -126,7 +127,7 @@ const submitHandler = (event) => {
 formEl.addEventListener("submit", submitHandler);
 
 //            ----------FEEDBACK LIST COMPONENT AJAX PROGRAMMING----------
-fetch("https://bytegrad.com/course-assets/js/1/api/feedbacks") //network GET request--ASYNCHRONOUS--Promise
+fetch(`${BASE_API_URL}/feedbacks`) //network GET request--ASYNCHRONOUS--Promise
   .then(
     (response) => response.json() //promise, as well; not right now because we are receiving it bit by bit
   )
