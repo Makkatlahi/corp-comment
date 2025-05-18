@@ -98,6 +98,7 @@ fetch("https://bytegrad.com/course-assets/js/1/api/feedbacks") //network GET req
     // here we have all the data
     // iterate over each element in feedbacks array and render it in list
     data.feedbacks.forEach((feedbackItem) => {
+      //don't forget to insert which array => data.feedbacks
       // new feedback item HTML
       const feedbackItemHTML = `
   <li class="feedback">
