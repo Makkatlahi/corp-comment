@@ -8,6 +8,7 @@ const formEl = document.querySelector(".form");
 const feedbackListEl = document.querySelector(".feedbacks");
 const submitBtnEl = document.querySelector(".submit-btn");
 const spinnerEl = document.querySelector(".spinner");
+const hashtagListEl = document.querySelector(".hashtags");
 
 const renderFeedbackItem = (feedbackItem) => {
   // new feedback item HTML
@@ -127,6 +128,35 @@ const submitHandler = (event) => {
 formEl.addEventListener("submit", submitHandler);
 
 //            ----------FEEDBACK LIST COMPONENT AJAX PROGRAMMING----------
+const clickHandler = (event) => {
+  //get clicked HTML element
+  const clickedEl = event.target;
+  //determine if user intended to upvote or expand
+  const upvoteIntention = clickedEl.className.includes("upvote"); //boolean
+
+  // run the appropriate logic
+  if (upvoteIntention) {
+    // get the closest upvote button
+    const upvoteBtnEl = clickedEl.closest(".upvote");
+    //disable the upvote button
+    upvoteBtnEl.disabled = true; //added in html 'disabled' attr. - css: set hidden
+    // select the upvote count element within the upvote button
+    // select the CLOSEST!
+    const upvoteCountEl = upvoteBtnEl.querySelector(".upvote__count");
+    //get currently displayed upvote count
+    let upvoteCount = +upvoteCountEl.textContent; //add '+' to convert to num
+
+    //display the new upvote count and increment by 1 w/ '++' BEFORE
+    upvoteCountEl.textContent = ++upvoteCount;
+  } else {
+    //expand the clicked feedback item
+    clickedEl.closest(".feedback").classList.toggle("feedback--expand");
+  }
+};
+
+//event listener HAS TO GO AFTER THE HANDLER FUNCTION
+feedbackListEl.addEventListener("click", clickHandler);
+
 fetch(`${BASE_API_URL}/feedbacks`) //network GET request--ASYNCHRONOUS--Promise
   .then(
     (response) => response.json() //promise, as well; not right now because we are receiving it bit by bit
@@ -146,3 +176,35 @@ fetch(`${BASE_API_URL}/feedbacks`) //network GET request--ASYNCHRONOUS--Promise
   .catch((error) => {
     feedbackListEl.textContent = `Failed to fetch feedback items. Error Message: ${error.message}`;
   });
+
+// --------- HASHTAG LIST COMPONENT ---------
+const clickHandler2 = (event) => {
+  const clickedEl = event.target;
+  //stop function if click happened in list, but outside button
+  if (clickedEl.className === "hashtags") return;
+  //extract company name from clicked button
+  const companyNameFromHashtag = clickedEl.textContent
+    .substring(1)
+    .toLowerCase()
+    .trim();
+  //iterate over each feedback item in the list
+  //this is an HTML element, so we can't iterate with forEach!
+  // instead we have to get the CHILD NODES, which we can perform forEach
+  feedbackListEl.childNodes.forEach((childNode) => {
+    // go over each one and get each one's company name that was clicked
+    //stop this iteration if it's a text node
+    if (childNode.nodeType === 3) return;
+    // extract company name from that 'li'
+    const companyNameFromFeedbackItem = childNode
+      .querySelector(".feedback__company")
+      .textContent.toLowerCase()
+      .trim();
+
+    // remove all feedback items from list if company names are not equal
+    if (companyNameFromHashtag !== companyNameFromFeedbackItem) {
+      childNode.remove();
+    }
+  });
+};
+
+hashtagListEl.addEventListener("click", clickHandler2);
