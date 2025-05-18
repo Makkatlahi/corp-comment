@@ -20,11 +20,11 @@ const renderFeedbackItem = (feedbackItem) => {
         <p class="feedback__letter">${feedbackItem.badgeLetter}</p>
     </section>
     <div class="feedback__content">
-        <p class="feedback__company">${feedbackItem.company}}</p>
+        <p class="feedback__company">${feedbackItem.company}</p>
         <p class="feedback__text">${feedbackItem.text}</p>
     </div>
     <p class="feedback__date">${
-      feedbackItem.upvoteCount === 0 ? "NEW" : `${feedbackItem.daysAgo}d`
+      feedbackItem.daysAgo === 0 ? "NEW" : `${feedbackItem.daysAgo}d`
     }</p>
   </li>
   `;
@@ -91,8 +91,9 @@ const submitHandler = (event) => {
     badgeLetter: badgeLetter,
     upvoteCount: upvoteCount,
     daysAgo: daysAgo,
+    text: text,
   };
-  renderFeedbackItem();
+  renderFeedbackItem(feedbackItem);
 
   // send feedback item to server
   fetch("https://bytegrad.com/course-assets/js/1/api/feedbacks", {
@@ -102,14 +103,16 @@ const submitHandler = (event) => {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-  }).then((response) => {
-    //guard clause: check if something went wrong first, then continue
-    if (!response.ok) {
-      console.log("Something went wrong");
-      return;
-    }
-    console.log("Successfully submitted");
-  });
+  })
+    .then((response) => {
+      //guard clause: check if something went wrong first, then continue
+      if (!response.ok) {
+        console.log("Something went wrong");
+        return;
+      }
+      console.log("Successfully submitted");
+    })
+    .catch((error) => console.log(error)); //arrow function automatically acts as a return
 
   // clear textarea
   textareaEl.value = "";
