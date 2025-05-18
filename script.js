@@ -88,3 +88,37 @@ const submitHandler = (event) => {
 };
 
 formEl.addEventListener("submit", submitHandler);
+
+// --FEEDBACK LIST COMPONENT AJAX PROGRAMMING
+fetch("https://bytegrad.com/course-assets/js/1/api/feedbacks") //network GET request--ASYNCHRONOUS--Promise
+  .then(
+    (response) => response.json() //promise, as well; not right now because we are receiving it bit by bit
+  )
+  .then((data) => {
+    // here we have all the data
+    // iterate over each element in feedbacks array and render it in list
+    data.feedbacks.forEach((feedbackItem) => {
+      // new feedback item HTML
+      const feedbackItemHTML = `
+  <li class="feedback">
+    <button class="upvote">
+        <i class="fa-solid fa-caret-up upvote__icon"></i>
+        <span class="upvote__count">${feedbackItem.upvoteCount}</span>
+    </button>
+    <section class="feedback__badge">
+        <p class="feedback__letter">${feedbackItem.badgeLetter}</p>
+    </section>
+    <div class="feedback__content">
+        <p class="feedback__company">${feedbackItem.company}}</p>
+        <p class="feedback__text">${feedbackItem.text}</p>
+    </div>
+    <p class="feedback__date">${
+      feedbackItem.upvoteCount === 0 ? "NEW" : `${feedbackItem.daysAgo}d`
+    }</p>
+  </li>
+  `;
+      //append new feedback item to list
+      feedbackListEl.insertAdjacentHTML("beforeend", feedbackItemHTML);
+    });
+  })
+  .catch((error) => {});
