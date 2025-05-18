@@ -1,4 +1,4 @@
-// --Global Selectors--
+//            ----------Global Selectors----------
 const MAX_CHARS = 150;
 
 const textareaEl = document.querySelector(".form__textarea");
@@ -6,8 +6,33 @@ const counterEl = document.querySelector(".counter");
 const formEl = document.querySelector(".form");
 const feedbackListEl = document.querySelector(".feedbacks");
 const submitBtnEl = document.querySelector(".submit-btn");
+const spinnerEl = document.querySelector(".spinner");
 
-// --Counter Component--
+const renderFeedbackItem = (feedbackItem) => {
+  // new feedback item HTML
+  const feedbackItemHTML = `
+  <li class="feedback">
+    <button class="upvote">
+        <i class="fa-solid fa-caret-up upvote__icon"></i>
+        <span class="upvote__count">${feedbackItem.upvoteCount}</span>
+    </button>
+    <section class="feedback__badge">
+        <p class="feedback__letter">${feedbackItem.badgeLetter}</p>
+    </section>
+    <div class="feedback__content">
+        <p class="feedback__company">${feedbackItem.company}}</p>
+        <p class="feedback__text">${feedbackItem.text}</p>
+    </div>
+    <p class="feedback__date">${
+      feedbackItem.upvoteCount === 0 ? "NEW" : `${feedbackItem.daysAgo}d`
+    }</p>
+  </li>
+  `;
+  //append new feedback item to list
+  feedbackListEl.insertAdjacentHTML("beforeend", feedbackItemHTML);
+};
+
+//            ---------Counter Component---------
 const inputHandler = () => {
   //determine max # of chars
   const maxNumChars = MAX_CHARS; //also implemented in the html file
@@ -20,7 +45,7 @@ const inputHandler = () => {
 
 textareaEl.addEventListener("input", inputHandler);
 
-// --Form Component--
+//            ----------Form Component----------
 
 const showVisualIndicator = (textCheck) => {
   const className = textCheck === "valid" ? "form--valid" : "form--invalid";
@@ -60,25 +85,32 @@ const submitHandler = (event) => {
   const upvoteCount = 0;
   const daysAgo = 0;
 
-  // new feedback item HTML
-  const feedbackItemHTML = `
-  <li class="feedback">
-    <button class="upvote">
-        <i class="fa-solid fa-caret-up upvote__icon"></i>
-        <span class="upvote__count">${upvoteCount}</span>
-    </button>
-    <section class="feedback__badge">
-        <p class="feedback__letter">${badgeLetter}</p>
-    </section>
-    <div class="feedback__content">
-        <p class="feedback__company">${company}</p>
-        <p class="feedback__text">${text}</p>
-    </div>
-    <p class="feedback__date">${daysAgo === 0 ? "NEW" : `${daysAgo}d`}</p>
-</li>
-`;
-  //append new feedback item to list
-  feedbackListEl.insertAdjacentHTML("beforeend", feedbackItemHTML);
+  //render feedback item in list
+  const feedbackItem = {
+    company: company,
+    badgeLetter: badgeLetter,
+    upvoteCount: upvoteCount,
+    daysAgo: daysAgo,
+  };
+  renderFeedbackItem();
+
+  // send feedback item to server
+  fetch("https://bytegrad.com/course-assets/js/1/api/feedbacks", {
+    method: "POST",
+    body: JSON.stringify(feedbackItem),
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  }).then((response) => {
+    //guard clause: check if something went wrong first, then continue
+    if (!response.ok) {
+      console.log("Something went wrong");
+      return;
+    }
+    console.log("Successfully submitted");
+  });
+
   // clear textarea
   textareaEl.value = "";
   // blur submit button
@@ -87,39 +119,26 @@ const submitHandler = (event) => {
   counterEl.textContent = MAX_CHARS;
 };
 
+//event listenter: on submit, do this
 formEl.addEventListener("submit", submitHandler);
 
-// --FEEDBACK LIST COMPONENT AJAX PROGRAMMING
+//            ----------FEEDBACK LIST COMPONENT AJAX PROGRAMMING----------
 fetch("https://bytegrad.com/course-assets/js/1/api/feedbacks") //network GET request--ASYNCHRONOUS--Promise
   .then(
     (response) => response.json() //promise, as well; not right now because we are receiving it bit by bit
   )
   .then((data) => {
+    //Remove loading spinner
+    spinnerEl.remove();
     // here we have all the data
     // iterate over each element in feedbacks array and render it in list
     data.feedbacks.forEach((feedbackItem) => {
-      //don't forget to insert which array => data.feedbacks
-      // new feedback item HTML
-      const feedbackItemHTML = `
-  <li class="feedback">
-    <button class="upvote">
-        <i class="fa-solid fa-caret-up upvote__icon"></i>
-        <span class="upvote__count">${feedbackItem.upvoteCount}</span>
-    </button>
-    <section class="feedback__badge">
-        <p class="feedback__letter">${feedbackItem.badgeLetter}</p>
-    </section>
-    <div class="feedback__content">
-        <p class="feedback__company">${feedbackItem.company}}</p>
-        <p class="feedback__text">${feedbackItem.text}</p>
-    </div>
-    <p class="feedback__date">${
-      feedbackItem.upvoteCount === 0 ? "NEW" : `${feedbackItem.daysAgo}d`
-    }</p>
-  </li>
-  `;
-      //append new feedback item to list
-      feedbackListEl.insertAdjacentHTML("beforeend", feedbackItemHTML);
+      // we created an object 'feedbackItem' that we can enter into the 'renderFeedbackItem()' function to loop through
+      renderFeedbackItem(feedbackItem);
     });
+    // data.feedbacks.forEach(feedbackItem => renderFeedbackItem(feedbackItem));
   })
-  .catch((error) => {});
+  //don't forget to insert which array => data.feedbacks
+  .catch((error) => {
+    feedbackListEl.textContent = `Failed to fetch feedback items. Error Message: ${error.message}`;
+  });
